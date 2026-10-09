@@ -155,9 +155,20 @@ pub fn installed_font_definitions(prefer_hans: bool) -> FontDefinitions {
     // Hangul doesn't overlap the scripts of the embedded faces, so its place after them is safe.
     #[cfg(not(target_arch = "wasm32"))]
     if let Some(data) = crate::system_fonts::hangul_fallback() {
-        fonts.font_data.insert(SYSTEM_HANGUL_FALLBACK.to_owned(), data);
-        for stack in fonts.families.values_mut() {
-            stack.push(SYSTEM_HANGUL_FALLBACK.to_owned());
+        // Personal build: full TrueType hinting (horizontal stems too), closer to how Windows
+        // draws Malgun Gothic.
+        let mut data = (*data).clone();
+        data.tweak.hinting = Some(true);
+        data.tweak.hinting_target = egui::epaint::text::HintingTarget::Mono;
+        fonts.font_data.insert(SYSTEM_HANGUL_FALLBACK.to_owned(), Arc::new(data));
+        for (family, stack) in fonts.families.iter_mut() {
+            // Personal build: tab titles and bookmark titles draw Latin with the Hangul face too,
+            // so a Korean name is one face; everything else keeps Inter first.
+            if *family == FontFamily::Name(HANGUL_FIRST.into()) {
+                stack.insert(0, SYSTEM_HANGUL_FALLBACK.to_owned());
+            } else {
+                stack.push(SYSTEM_HANGUL_FALLBACK.to_owned());
+            }
         }
     }
     #[cfg(not(target_arch = "wasm32"))]
@@ -223,7 +234,18 @@ pub fn font_definitions_for(prefer_hans: bool) -> FontDefinitions {
         stack.extend(fallback.iter().cloned());
         fonts.families.insert(FontFamily::Name(fam.into()), stack);
     }
+    // Always defined, so `hangul_first` works without an installed Hangul face (then it is
+    // the proportional stack).
+    fonts.families.insert(FontFamily::Name(HANGUL_FIRST.into()), fallback);
     fonts
+}
+
+/// Personal build: the family for document names (tab titles) and bookmark titles. An installed
+/// Hangul face comes first, so a Korean name with Latin letters and digits is drawn in one face.
+const HANGUL_FIRST: &str = "hangul-first";
+
+pub fn hangul_first(size: f32) -> FontId {
+    FontId::new(size, FontFamily::Name(HANGUL_FIRST.into()))
 }
 
 pub fn regular(size: f32) -> FontId {

@@ -757,7 +757,7 @@ fn outline_item(ui: &mut egui::Ui, t: &Tokens, info: &DocInfo, item: &OutlineIte
             })
         });
         let label_w = label_galley.as_ref().map_or(0.0, |g| g.size().x);
-        let font = if depth == 0 { theme::medium(13.0) } else { theme::regular(13.0) };
+        let font = theme::hangul_first(13.0);
         let wrap_w = (ui.available_width() - indent - 20.0 - label_w - 12.0).max(60.0);
         let galley = ui.fonts_mut(|f| f.layout(item.title.clone(), font, t.text, wrap_w));
         let h = (galley.size().y + 12.0).max(28.0);

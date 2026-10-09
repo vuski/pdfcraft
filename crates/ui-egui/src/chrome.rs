@@ -90,7 +90,7 @@ fn theme_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
 
 #[allow(clippy::too_many_arguments)]
 fn tab(ui: &mut egui::Ui, t: &Tokens, icon: &str, name: &str, dirty: bool, active: bool, close: &mut Option<usize>, index: usize) -> egui::Response {
-    let font = theme::regular(13.0);
+    let font = theme::hangul_first(13.0);
     let label: String = if name.chars().count() > 28 { format!("{}…", name.chars().take(27).collect::<String>()) } else { name.to_string() };
     // Painted text only: the accessibility name below keeps the logical order.
     let label = crate::bidi::visual(&label).into_owned();
